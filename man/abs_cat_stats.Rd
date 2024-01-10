@@ -37,7 +37,7 @@ This function downloads ABS catalogue series statistics, by ABS catalogue number
 }
 \examples{
   \donttest{
-    ## Download quarterly Australian National Accounts, Tables 1 & 2 
+    ## Download quarterly Australian National Accounts, Tables 1 & 2
     ana_q <- abs_cat_stats("5206.0", tables=c("Table 1\\\\W+", "Table 2\\\\W+"));
 
     ## Download December 2017 Australian National Accounts, Table 1

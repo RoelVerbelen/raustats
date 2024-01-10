@@ -23,7 +23,7 @@ Return list of all releases available for specified ABS catalogue number.
     ## List all available quarterly National Accounts tables
     ana_releases <- abs_cat_releases("5206.0");
     ana_release_urls <- abs_cat_releases("5206.0", include_urls=TRUE);
-  
+
     ## List latest available CPI Time Series Spreadsheet tables only
     cpi_releases <- abs_cat_releases("6401.0");
     cpi_release_urls <- abs_cat_releases("6401.0", include_urls=TRUE);

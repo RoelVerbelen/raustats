@@ -36,7 +36,5 @@ This is the internal function that extracts time series data from ABS data files
 }
 \author{
 David Mitchell <david.pk.mitchell@gmail.com>
-
-David Mitchell <david.pk.mitchell@gmail.com>
 }
 \keyword{internal}
