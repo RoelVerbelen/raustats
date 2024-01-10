@@ -28,7 +28,7 @@ rba_table_cache <- function()
 {
   ## Avoid 'No visible binding for global variables' note
   { table_name <- NULL }
-  ## Create RBA URL and open session 
+  ## Create RBA URL and open session
   url <- file.path(rba_urls()$base_url, rba_urls()$stats_path);
   ## Check url available
   raustats_check_url_available(url);
@@ -128,7 +128,7 @@ rba_search <- function(pattern, fields = c("table_no", "table_name"),
   match_index <- sort(unique(unlist(match_index)));
   z <- rba_cache[match_index,];
   ## Filter RBA data sets to specified series type(s)
-  if (!any(series_type %in% c("statistical tables", "historical data", "discontinued data"))) 
+  if (!any(series_type %in% c("statistical tables", "historical data", "discontinued data")))
     stop(sprintf("Invalid series type(s): %s",
                  paste(series_type[!series_type %in%
                                    c("statistical tables", "historical data", "discontinued data")],
@@ -201,7 +201,7 @@ rba_stats <- function(table_no, pattern, url, update_cache=FALSE, ...)
 
   if (!missing(pattern))
     urls <- as.character(rba_search(pattern, update_cache=update_cache, ...)$url)
-  
+
   if (!missing(url)) {
     if (!any(url %in% rba_cache$url))
       stop(sprintf("Following urls invalid: %s",
@@ -210,7 +210,7 @@ rba_stats <- function(table_no, pattern, url, update_cache=FALSE, ...)
   }
   ## Download RBA statistical data
   ## Internet resource checking undertaken in 'rba_file_download' function.
-  z <- lapply(urls, rba_file_download); 
+  z <- lapply(urls, rba_file_download);
   ## Read data
   data <- lapply(z, rba_read_tss);
   data <- do.call(rbind, data);
@@ -223,7 +223,7 @@ rba_stats <- function(table_no, pattern, url, update_cache=FALSE, ...)
 #' @title Function to download statistics files from the RBA website and store locally
 #' @description This function downloads one or more RBA data files at the specified by URLs and
 #'   saves a local copy.
-#' @importFrom httr GET http_type http_error progress status_code write_disk 
+#' @importFrom httr GET http_type http_error progress status_code write_disk
 #' @param data_url Character vector specifying an RBA data set URL.
 #' @param exdir Target directory for downloaded files (defaults to \code{tempdir()}). Directory is
 #'   created if it doesn't exist.
@@ -267,7 +267,7 @@ rba_file_download <- function(data_url, exdir=tempdir(), update_cache=TRUE)
   ## if (http_error(resp)) {
   ##   stop(
   ##     sprintf(
-  ##       "RBA data file request failed (Error code: %s)\nInvalid URL: %s", 
+  ##       "RBA data file request failed (Error code: %s)\nInvalid URL: %s",
   ##       status_code(resp),
   ##       data_url
   ##     ),
@@ -322,10 +322,10 @@ rba_read_tss_ <- function(file)
     rba_cache %>% write.csv(file.path(tempdir(), "rba_cache.csv"))
     table_no = "G3"
     urls <- as.character(rba_cache$url[which(table_no == rba_cache$table_no)]);
-    file <- lapply(urls, rba_file_download)[[1]]; 
+    file <- lapply(urls, rba_file_download)[[1]];
       sheet_names <- excel_sheets(file)[grepl("data|series breaks", excel_sheets(file), ignore.case=TRUE)];
   }
-  
+
   ## Avoid 'No visible binding for global variables' note
   { series_id <- value <- NULL }
   sheet_names <- excel_sheets(file);
@@ -334,7 +334,7 @@ rba_read_tss_ <- function(file)
   ##   cat(sprintf("Note RBA data file %s contains Series Breaks. (See: %s for details).\n",
   ##               basename(file), file));
   ## CONSIDER: option for incorporating series breaks.
-  
+
   ## TO DO
   ## 1. Require method to import historical and supplementary RBA data tables
   ## Check validity
@@ -347,7 +347,7 @@ rba_read_tss_ <- function(file)
       ## Read metadata
       .data <- read_excel(file, sheet=sheet_name, col_names=FALSE, col_types="text",
                           na=c("","--"), .name_repair="minimal");
-      ## Return pre-header information from RBA files 
+      ## Return pre-header information from RBA files
       header_row <- which(sapply(1:nrow(.data),
                                  function(i)
                                    grepl("series\\s*id", paste(.data[i,], collapse=" "),
@@ -369,12 +369,14 @@ rba_read_tss_ <- function(file)
                                       gsub("\\.", "",
                                            metadata[1,])));       ## Rename variables
       metadata <- metadata[-1,];
-      metadata$publication_date <- excel2Date(as.integer(metadata$publication_date));
+      # This no longer works (2024-01-10)
+      # metadata$publication_date <- excel2Date(as.integer(metadata$publication_date));
+      metadata$publication_date <- as.Date(metadata$publication_date, tryFormats = c("%d-%b-%Y"));
       ## Append to metadata table
       metadata <- transform(metadata,
                             table_no = table_no,
                             table_name = table_name);
-      
+
       z <- .data[-(1:header_row),];
       ## Rename variables, including renaming `Series ID`
       names(z) <- sub("series.*id", "date", .data[header_row,], ignore.case=TRUE);
@@ -382,7 +384,7 @@ rba_read_tss_ <- function(file)
       z <- transform(z,
                      date = excel2Date(as.integer(date)),
                      value = as.numeric(value));
-      
+
       data <- left_join(z, metadata, by="series_id");
       data <- data[complete.cases(data),];
       names(data) <- tolower(names(data));
