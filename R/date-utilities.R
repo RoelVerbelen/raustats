@@ -10,7 +10,18 @@
 ## #'   }
 #' @keywords internal
 excel2Date <- function(x) {
-  as.Date(x, origin="1899-12-30");
+  # First attempt using the integer origin method
+  dates <- try(as.Date(as.integer(x), origin="1899-12-30"), silent = TRUE)
+
+  # Identify which dates failed to parse
+  failed <- is.na(dates)
+
+  # Second attempt for failed dates using the tryFormats method
+  if (any(failed)) {
+    dates[failed] <- try(as.Date(x[failed], tryFormats = c("%d-%b-%Y")), silent = TRUE)
+  }
+
+  return(dates)
 }
 
 ### Function: quarter2Date
@@ -79,7 +90,7 @@ last_day <- function(date)
 #' @description Function to create a financial year date object
 #' @param date date object
 #' @param ending character string abbreviation or number denoting ending month of the financial year
-#' @return Date object 
+#' @return Date object
 #' @author David Mitchell <david.pk.mitchell@@gmail.com>
 ## #' @examples
 ## #'   \donttest{

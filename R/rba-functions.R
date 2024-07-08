@@ -16,7 +16,7 @@ rba_urls <- function()
 #' @name rba_table_cache
 #' @title Return list of RBA tables
 #' @description Function to return an updated list of data tables available from the RBA website.
-#' @importFrom rvest html_session jump_to html_attr html_text html_nodes
+#' @importFrom rvest session session_jump_to html_attr html_text html_nodes
 #' @return data frame in long format
 #' @export
 #' @author David Mitchell <david.pk.mitchell@@gmail.com>
@@ -32,7 +32,7 @@ rba_table_cache <- function()
   url <- file.path(rba_urls()$base_url, rba_urls()$stats_path);
   ## Check url available
   raustats_check_url_available(url);
-  s <- html_session(url);
+  s <- session(url);
   ## Get statistical data paths
   .paths <- html_nodes(s, "a");
   path_statistical_data <- unique(html_attr(.paths, "href")[grepl("^statistical tables$",
@@ -43,7 +43,7 @@ rba_table_cache <- function()
                                                                    html_text(.paths), ignore.case=TRUE)]);
   ##
   ## Get list of current data tables
-  rs <- jump_to(s, path_statistical_data);
+  rs <- session_jump_to(s, path_statistical_data);
   .paths <- html_nodes(rs, "a");
   statistical_tables <- data.frame(table_type = "statistical tables",
                                    table = html_text(.paths[grepl("xls(x*)", .paths, ignore.case=TRUE)]),
@@ -54,7 +54,7 @@ rba_table_cache <- function()
   statistical_tables <- statistical_tables[grepl("\\.xls(x*)$", statistical_tables$url, ignore.case=TRUE),];
   ##
   ## Get list of historical data tables
-  rs <- jump_to(s, path_historical_data);
+  rs <- session_jump_to(s, path_historical_data);
   .paths <- html_nodes(rs, "a");
   historical_tables <- data.frame(table_type = "historical data",
                                   table = html_text(.paths[grepl("xls(x*)", .paths, ignore.case=TRUE)]),
@@ -69,7 +69,7 @@ rba_table_cache <- function()
                                                 ignore.case=TRUE),];
   ##
   ## Get list of discontinued data tables
-  rs <- jump_to(s, path_discontinued_data);
+  rs <- session_jump_to(s, path_discontinued_data);
   .paths <- html_nodes(rs, "a");
   discontinued_tables <- data.frame(table_type = "discontinued data",
                                     table = html_text(.paths[grepl("xls(x*)", .paths, ignore.case=TRUE)]),
@@ -369,9 +369,9 @@ rba_read_tss_ <- function(file)
                                       gsub("\\.", "",
                                            metadata[1,])));       ## Rename variables
       metadata <- metadata[-1,];
-      # This no longer works (2024-01-10)
-      # metadata$publication_date <- excel2Date(as.integer(metadata$publication_date));
-      metadata$publication_date <- as.Date(metadata$publication_date, tryFormats = c("%d-%b-%Y"));
+      # This no longer works (2024-01-10, updated 2024-07-08)
+      metadata$publication_date <- excel2Date(metadata$publication_date)
+
       ## Append to metadata table
       metadata <- transform(metadata,
                             table_no = table_no,

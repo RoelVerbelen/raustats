@@ -38,7 +38,7 @@ abs_filetypes <- function()
 #' @name abs_cat_stats
 #' @title Get ABS catalogue series data
 #' @description This function downloads ABS catalogue series statistics, by ABS catalogue number.
-#' @importFrom rvest html_session follow_link html_attr jump_to
+#' @importFrom rvest session follow_link html_attr session_jump_to
 #' @importFrom xml2 read_xml read_html
 #' @param cat_no Character vector specifying one or more ABS collections or catalogue numbers to
 #'   download.
@@ -125,7 +125,7 @@ abs_cat_stats <- function(cat_no, tables="All", releases="Latest", types="tss", 
 #' @name abs_cat_tables
 #' @title Return ABS catalogue tables
 #' @description Return list of data tables available from specified ABS catalogue number.
-#' @importFrom rvest html_session html_text html_nodes html_attr follow_link
+#' @importFrom rvest session html_text html_nodes html_attr follow_link
 #' @importFrom httr http_error
 #' @importFrom dplyr case_when bind_rows
 #' @param cat_no ABS catalogue numbers.
@@ -189,7 +189,7 @@ abs_cat_tables <- function(cat_no, releases="Latest", types=c("tss", "css"), inc
   ## if (http_error(url))
   ##   stop(sprintf("File cannot be downloaded. Check URL: %s", url))
   ## Open html session
-  suppressWarnings(s <- html_session(url));
+  suppressWarnings(s <- session(url));
   releases <- unique(releases);
   if (length(releases) == 1 && tolower(releases) == "latest") {
     .paths <- "";
@@ -198,7 +198,7 @@ abs_cat_tables <- function(cat_no, releases="Latest", types=c("tss", "css"), inc
     .paths <- html_nodes(s, "a");
     .paths <- .paths[grepl(abs_urls()$releases_regex, .paths)];
     .paths <- html_attr(.paths, "href");
-    s <- jump_to(s, .paths)
+    s <- session_jump_to(s, .paths)
     .paths <- html_nodes(s, "a");
     .paths <- .paths[grepl(paste(releases, collapse="|"), .paths, ignore.case=TRUE)];
     .paths <- html_attr(.paths, "href");
@@ -208,7 +208,7 @@ abs_cat_tables <- function(cat_no, releases="Latest", types=c("tss", "css"), inc
               function(x) {
                 ## Check for HTTP errors
                 ## raustats_check_url_available(file.path(s, x));
-                y <- jump_to(s, x)
+                y <- session_jump_to(s, x)
                 l <- follow_link(y, abs_urls()$downloads_regex)
                 ht <- html_nodes(html_nodes(l, "table"), "table")
                 ## Return data table
@@ -313,7 +313,7 @@ abs_cat_tables <- function(cat_no, releases="Latest", types=c("tss", "css"), inc
 #' @name abs_cat_releases
 #' @title Return ABS catalogue table releases
 #' @description Return list of all releases available for specified ABS catalogue number.
-#' @importFrom rvest html_session html_table html_text html_nodes html_attr follow_link
+#' @importFrom rvest session html_table html_text html_nodes html_attr follow_link
 #' @importFrom httr http_error
 #' @param cat_no ABS catalogue numbers.
 #' @param include_urls Include full path URL to specified ABS catalogue releases. Default (FALSE)
@@ -348,12 +348,12 @@ abs_cat_releases <- function(cat_no, include_urls=FALSE)
   raustats_check_url_available(url)
   ## if (http_error(url))
   ##   stop(sprintf("File cannot be downloaded. Check URL: %s", url))
-  suppressWarnings(s <- html_session(url));
+  suppressWarnings(s <- session(url));
   ## Get path to 'Past & Future Releases' page
   .paths <- html_nodes(s, "a");
   .paths <- .paths[grepl(abs_urls()$releases_regex, .paths)];
   .paths <- html_attr(.paths, "href");
-  s <- jump_to(s, .paths)
+  s <- session_jump_to(s, .paths)
   ## Get list of available ABS catalogue releases (See: https://devhints.io/xpath for Xpath hints)
   .tables <- html_nodes(s, "table");
   .tables <- .tables[grepl("Past Releases", .tables, ignore.case=TRUE)];
